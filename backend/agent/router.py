@@ -40,7 +40,7 @@ def handle_non_legal_message(user_query: str, chat_history=None):
     chat (e.g. "explain more", "why?") are treated as legal, not small talk.
     """
     llm = ChatGroq(
-        model="llama-3.1-8b-instant",
+        model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
         temperature=0.3,
         groq_api_key=os.getenv("GROQ_API_KEY"),
         max_retries=5,

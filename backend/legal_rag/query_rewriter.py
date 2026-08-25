@@ -54,7 +54,7 @@ def rewrite_query(state: AgentState) -> dict:
     history_block = history_text if history_text else "(no prior messages)"
 
     llm = ChatGroq(
-        model="llama-3.1-8b-instant",
+        model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
         temperature=0.2,
         groq_api_key=os.getenv("GROQ_API_KEY"),
         max_retries=5,
