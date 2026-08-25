@@ -59,7 +59,7 @@ def get_llm():
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY environment variable not set.")
     return ChatGroq(
-        model="llama-3.1-8b-instant", temperature=0.2, groq_api_key=groq_api_key
+        model="llama-3.1-8b-instant", temperature=0.2, groq_api_key=groq_api_key, max_retries=5
     )
 
 
@@ -88,9 +88,9 @@ def summarize_long_text(text: str, label: str, query: str) -> str:
 
     llm = get_llm()
 
-    # ✅ Fast mode: just trim input
+    # ✅ Fast mode: just trim input (kept small to respect Groq free-tier TPM limits)
     if FAST_MODE:
-        trimmed = " ".join(text.split()[:2000])
+        trimmed = " ".join(text.split()[:900])
         prompt = PromptTemplate(
             template=f"""Summarize the following {label} (<200 words), focusing on acts, sections, judgments.
 
@@ -177,36 +177,86 @@ def summarize_and_reflect(state: AgentState) -> dict:
     }
 
 
+def format_chat_history(chat_history, max_turns: int = 6) -> str:
+    """Render recent conversation turns as plain text for prompting."""
+    if not chat_history:
+        return ""
+    recent = chat_history[-(max_turns * 2):]
+    lines = []
+    for m in recent:
+        if isinstance(m, dict):
+            role = m.get("role") or m.get("type") or "user"
+            content = m.get("content", "")
+        else:
+            role = getattr(m, "type", "user")
+            content = getattr(m, "content", str(m))
+        who = "User" if str(role).lower() in ("user", "human") else "L.A.R.A"
+        content = str(content).strip()
+        if content:
+            lines.append(f"{who}: {content[:500]}")
+    return "\n".join(lines)
+
+
 def generate_final_analysis(state: AgentState) -> dict:
-    """Generates the final, structured legal analysis."""
+    """Generates the final, conversational answer, grounded in the research."""
     print("---GENERATING FINAL ANALYSIS---")
     query = state["query"]
+
+    # If BOTH the legal document search and the web search came back empty, there
+    # is nothing to ground an answer on. Rather than let the model invent plausible
+    # (but fabricated) facts, return an honest message. This is common for very
+    # recent / current-events topics that aren't in the corpus.
+    faiss_res = (state.get("faiss_search_results") or "").strip()
+    web_res = (state.get("web_search_results") or "").strip()
+    if not faiss_res and not web_res:
+        print("---NO GROUNDING FOUND: returning honest fallback---")
+        return {
+            "final_analysis": (
+                "I couldn't find reliable information on this in my legal document set "
+                "or through a web search just now. This can happen with very recent or "
+                "current-events topics that aren't in my sources. For up-to-date "
+                "developments, please check reputable news outlets or official government "
+                "notifications. If it helps, I can still explain the underlying legal "
+                "principles involved - just ask."
+            )
+        }
+
     all_steps = "\n".join(state["intermediate_steps"])
 
     # Compress steps if too long
     if len(all_steps.split()) > 1500:
         all_steps = summarize_long_text(all_steps, "research steps", query)
 
+    history_text = format_chat_history(state.get("chat_history", []))
+    history_block = history_text if history_text else "(This is the first message in the conversation.)"
+
     llm = get_llm()
     analysis_prompt = PromptTemplate(
-        template="""Based on the user query and research steps,
-        generate a structured legal analysis:
+        template="""You are L.A.R.A, a friendly and knowledgeable legal assistant for Indian law, having an ongoing chat with a user.
 
-        - **Original Query**
-        - **Legal Context**
-        - **Case Law Summary**
-        - **Analysis and Recommendations**
-        - **Sources**
+Conversation so far:
+{history}
 
-        Query: {query}
-        Research Steps: {all_steps}
+The user's latest message: {query}
 
-        Final Analysis:""",
-        input_variables=["query", "all_steps"],
+Research findings gathered for this message (this is your ONLY source of factual grounding):
+{all_steps}
+
+Write your reply following these rules carefully:
+1. CONTINUITY: Continue the conversation naturally. Only greet or introduce yourself if this is the first message. If there are earlier messages, do NOT say "Hello" or re-introduce yourself - just answer.
+2. FOLLOW-UPS: If the latest message is a follow-up ("explain more", "what about X", "why?"), interpret it using the earlier messages.
+3. GROUNDING: State legal facts, act names, section numbers, article numbers, and case names ONLY if they actually appear in the research findings above. Do NOT rely on your own memory for citations.
+4. NO HALLUCINATION: Never invent or guess a case name, citation, section, or article. If the findings lack a specific precedent or provision, say so plainly (e.g. "I couldn't find a specific case on this in my sources"). It is better to admit a gap than to fabricate.
+5. STYLE: Clear, plain, conversational language. No rigid report headers. As concise as the question warrants.
+
+Your reply:""",
+        input_variables=["history", "query", "all_steps"],
     )
 
     final_analysis = safe_invoke(
-        llm, analysis_prompt, {"query": query, "all_steps": all_steps}
+        llm,
+        analysis_prompt,
+        {"history": history_block, "query": query, "all_steps": all_steps},
     )
 
     return {"final_analysis": final_analysis}
@@ -364,18 +414,18 @@ def evaluate_analysis(llm, query: str, all_steps: str, analysis: str) -> str:
     final_confidence = round(min(final_confidence, 5.0), 2)
 
     # Step 5: Return formatted result
-    result = f"""
-    --- Evaluation Summary ---
-    🔹 Relevance Score: {relevance}/5
-    🔹 Context Faithfulness Score: {faithfulness}/5
-    🔹 Clarity Score: {clarity}/5
-    🔹 LLM Weighted Average: {round(llm_score, 2)}/5
+    result = f"""--- Response Quality (auto-assessed) ---
+🔹 Relevance: {relevance}/5
+🔹 Context Faithfulness: {faithfulness}/5
+🔹 Clarity: {clarity}/5
+🔹 LLM Weighted Average: {round(llm_score, 2)}/5
+🔸 Semantic Similarity (Query + Context): {round(semantic_confidence, 2)}/5
 
-    🔸 Semantic Similarity (Query + Context): {round(semantic_confidence, 2)}/5
-    ✅ Overall Confidence Score: {final_confidence} / 5
+⭐ Overall Quality Score: {final_confidence} / 5
 
-    💬 Justification: {justification}
-    """
+💬 Justification: {justification}
+
+⚠️ Note: This score reflects how relevant, faithful and clear the response is - it is NOT a guarantee of legal accuracy. Always verify any cited acts, sections and cases against official sources."""
     return result
 
 
@@ -425,12 +475,9 @@ def combine_analysis_and_evaluation(state: AgentState) -> dict:
     This is the last step before sending the response to the user.
     """
     print("---COMBINING ANALYSIS AND EVALUATION---")
-    
-    final_analysis = state.get("final_analysis", "No analysis was generated.")
-    evaluation_summary = state.get("evaluation_score", "No evaluation was performed.")
-    
-    # Combine them with clear separation
-    combined_response = f"{final_analysis}\n\n{evaluation_summary}"
-    
-    # Overwrite the final_analysis key with the combined response
-    return {"final_analysis": combined_response}
+
+    # The conversational answer (final_analysis) and the evaluation summary are
+    # now returned to the frontend as SEPARATE fields, so the chat bubble stays
+    # clean and the evaluation is shown behind an expandable button instead.
+    # This node is kept as a no-op to preserve the existing graph wiring.
+    return {}

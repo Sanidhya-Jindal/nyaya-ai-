@@ -10,6 +10,7 @@ class LawyerAgentState(TypedDict):
     facts: List[str]  # Extracted facts
     sub_queries: Annotated[List[str], operator.add]  # Sub-queries for retrieval
     retrieved_context: Annotated[List[str], operator.add]  # Retrieved documents/context
+    sources: Annotated[List[dict], operator.add]  # Citable sources (docs + web URLs)
     answer_draft: str  # Draft answer
     answer_score: float  # Score from critic (0.0 to 1.0)
     iterations: Annotated[int, operator.add]  # Number of iterations

@@ -11,7 +11,7 @@ from agent.router import route_query
 
 st.set_page_config(
     page_title="L.A.R.A. - Legal Analysis & Research Assistant",
-    page_icon="../frontend/public/logo.png",
+    page_icon="⚖️",
 )
 
 # Custom CSS for fancy UI

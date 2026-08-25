@@ -7,7 +7,8 @@ def drafter(state: LawyerAgentState) -> dict:
     print("---DRAFTING ANSWER---")
     query = state["query"]
     retrieved_context = "\n".join(state["retrieved_context"])
+    chat_history = state.get("chat_history", [])
 
-    answer_draft = generate_legacy_lawyer_answer(query, retrieved_context)
+    answer_draft = generate_legacy_lawyer_answer(query, retrieved_context, chat_history)
 
     return {"answer_draft": answer_draft}

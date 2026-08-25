@@ -1,48 +1,45 @@
-# --- Python backend ---
+# ---------------------------------------------
+# Python backend
+# ---------------------------------------------
 
-# Virtual Environment folder
-# This is crucial to prevent committing large library files
+# Virtual environments
 venv/
-/venv/
-__pycache__/
-*.pyc
+.venv/
+env/
+ENV/
 
-# Local settings and secrets file
-# IMPORTANT: Never commit your API keys or secrets!
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Secrets - NEVER commit real API keys
 .env
 .env.*
+!.env.example
+!**/.env.example
 
-# Local database files (if any)
+# Local databases
 *.sqlite3
 *.db
 
+# ---------------------------------------------
+# Node / React frontend
+# ---------------------------------------------
 
-# --- React frontend / Node.js ---
+node_modules/
+dist/
+build/
 
-# Node modules folder
-# This is usually a very large folder and can be reinstalled from package.json
-frontend/node_modules/
-/node_modules/
-
-# Build output
-frontend/dist/
-frontend/build/
-
-# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Local environment variables for frontend
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
+# ---------------------------------------------
+# Editors / OS
+# ---------------------------------------------
 
-
-# --- General ---
-
-# IDE/Editor specific files
 .vscode/
 .idea/
 *.suo
@@ -50,8 +47,9 @@ frontend/.env.production.local
 *.njsproj
 *.sln
 *.sw?
+*.swo
+*.swn
 
-# OS-generated files
 .DS_Store
 Thumbs.db
 Desktop.ini
@@ -59,5 +57,3 @@ Desktop.ini
 # Temporary files
 *.tmp
 *.bak
-*.swo
-*.swn

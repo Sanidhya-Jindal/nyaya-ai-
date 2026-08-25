@@ -39,6 +39,8 @@ app.add_middleware(
         "http://127.0.0.1:5174",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:8010",
+        "http://127.0.0.1:8010",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -58,6 +60,8 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     final_analysis: str
     thread_id: str
+    evaluation: str | None = None
+    sources: list[str] | None = None
 
 
 class ChatHistoryRequest(BaseModel):
@@ -77,6 +81,64 @@ class SaveThreadRequest(BaseModel):
 # ============================
 # 4. API ENDPOINTS
 # ============================
+
+def _extract_evaluation(result: dict) -> str | None:
+    """Pull a human-readable evaluation summary from either agent's result."""
+    # Citizen agent: pre-formatted evaluation string
+    evaluation = result.get("evaluation_score")
+    if evaluation and str(evaluation).strip():
+        return str(evaluation).strip()
+
+    # Lawyer agent: a numeric 0-1 quality score
+    score = result.get("answer_score")
+    if isinstance(score, (int, float)):
+        return (
+            f"⭐ Overall Quality Score: {round(score * 5, 2)} / 5\n\n"
+            "⚠️ Note: This reflects response quality, not verified legal accuracy. "
+            "Always verify cited acts, sections and cases against official sources."
+        )
+
+    return None
+
+
+def _extract_sources(result: dict) -> list[str] | None:
+    """Normalize the different source shapes into a clean list of display strings."""
+    display: list[str] = []
+
+    # Citizen agent: list of {"type": "document"/"web", ...}
+    for s in result.get("sources", []) or []:
+        if not isinstance(s, dict):
+            display.append(str(s)[:250])
+            continue
+        if s.get("type") == "document":
+            md = s.get("metadata", {}) or {}
+            name = md.get("case_name") or md.get("source") or "Legal document"
+            display.append(f"📄 {name}")
+        elif s.get("type") == "web":
+            title = (s.get("title") or "").strip()
+            url = (s.get("url") or "").strip()
+            label = title or (str(s.get("content") or "")[:80]).strip() or "Web result"
+            display.append(f"🌐 {label}" + (f" — {url}" if url else ""))
+        else:
+            display.append(str(s)[:250])
+
+    # Lawyer agent: retrieved_context is a list of raw context strings
+    if not display:
+        for ctx in result.get("retrieved_context", []) or []:
+            snippet = str(ctx).strip().replace("\n", " ")
+            if snippet:
+                display.append(f"📄 {snippet[:250]}")
+
+    # De-duplicate while preserving order, and cap to keep the UI readable.
+    seen = set()
+    deduped = []
+    for item in display:
+        if item not in seen:
+            seen.add(item)
+            deduped.append(item)
+
+    return deduped[:12] or None
+
 
 @app.get("/")
 def read_root():
@@ -100,13 +162,19 @@ async def process_legal_query(request: QueryRequest):
             "Sorry, no analysis could be generated.",
         )
 
-        # Save chat
+        # --- Explainable-AI fields (only present for real legal queries) ---
+        evaluation = _extract_evaluation(result)
+        sources = _extract_sources(result)
+
+        # Save chat (store only the clean conversational answer)
         save_message(request.thread_id, "user", request.user_query)
         save_message(request.thread_id, "bot", final_analysis)
 
         return QueryResponse(
             final_analysis=final_analysis,
             thread_id=request.thread_id,
+            evaluation=evaluation,
+            sources=sources,
         )
 
     except Exception as e:
@@ -162,6 +230,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "app:app",
         host="0.0.0.0",
-        port=8000,
+        port=8010,
         reload=True,
     )

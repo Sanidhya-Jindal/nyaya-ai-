@@ -17,7 +17,7 @@ def get_llm():
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY environment variable not set.")
     return ChatGroq(
-        model="llama-3.1-8b-instant", temperature=0.2, groq_api_key=groq_api_key
+        model="llama-3.1-8b-instant", temperature=0.2, groq_api_key=groq_api_key, max_retries=5
     )
 
 

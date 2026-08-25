@@ -17,6 +17,14 @@ function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentThreadFilter, setCurrentThreadFilter] = useState(null);
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
+  const [openPanels, setOpenPanels] = useState({}); // messageId -> 'sources' | 'evaluation' | null
+
+  const togglePanel = (messageId, panel) => {
+    setOpenPanels(prev => ({
+      ...prev,
+      [messageId]: prev[messageId] === panel ? null : panel
+    }));
+  };
 
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -57,7 +65,7 @@ function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const result = await axios.post('http://127.0.0.1:8000/process_query', {
+      const result = await axios.post('http://127.0.0.1:8010/process_query', {
         user_query: currentQuery,
         role: userRole,
         thread_id: threadId,
@@ -67,6 +75,8 @@ function ChatInterface() {
         id: crypto.randomUUID(),
         type: 'bot',
         content: result.data.final_analysis,
+        evaluation: result.data.evaluation || null,
+        sources: result.data.sources || null,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMessage]);
@@ -74,7 +84,7 @@ function ChatInterface() {
       // Save thread to database only when the user sends the first real message
       if (isFirstRealMessage && user) {
         try {
-          await axios.post('http://127.0.0.1:8000/save_thread', {
+          await axios.post('http://127.0.0.1:8010/save_thread', {
             user_id: user.id,
             thread_id: threadId,
             title: currentQuery.length > 50 ? currentQuery.substring(0, 50) + '...' : currentQuery
@@ -303,6 +313,60 @@ function ChatInterface() {
                         {message.content}
                       </pre>
                     </div>
+
+                    {/* Explainable-AI panels (only for real legal answers) */}
+                    {message.type === 'bot' && !message.isError && ((message.sources && message.sources.length > 0) || message.evaluation) && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex flex-wrap gap-2">
+                          {message.sources && message.sources.length > 0 && (
+                            <button
+                              onClick={() => togglePanel(message.id, 'sources')}
+                              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border transition-all duration-200 ${
+                                openPanels[message.id] === 'sources'
+                                  ? 'bg-gray-800 text-white border-gray-700'
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'
+                              }`}
+                            >
+                              <FileText className="w-4 h-4" />
+                              Sources ({message.sources.length})
+                            </button>
+                          )}
+                          {message.evaluation && (
+                            <button
+                              onClick={() => togglePanel(message.id, 'evaluation')}
+                              className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border transition-all duration-200 ${
+                                openPanels[message.id] === 'evaluation'
+                                  ? 'bg-gray-800 text-white border-gray-700'
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300'
+                              }`}
+                            >
+                              <Award className="w-4 h-4" />
+                              Confidence &amp; Evaluation
+                            </button>
+                          )}
+                        </div>
+
+                        {openPanels[message.id] === 'sources' && (
+                          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Sources used</p>
+                            <ul className="space-y-2 text-sm text-gray-700 list-disc pl-5">
+                              {message.sources.map((src, i) => (
+                                <li key={i} className="break-words">{src}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {openPanels[message.id] === 'evaluation' && (
+                          <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Self-evaluation</p>
+                            <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700 leading-relaxed">
+                              {message.evaluation}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 

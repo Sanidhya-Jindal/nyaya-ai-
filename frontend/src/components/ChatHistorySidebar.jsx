@@ -17,7 +17,7 @@ function ChatHistorySidebar({ isOpen, onClose, onThreadSelect, currentThreadId, 
   const fetchChatHistory = async () => {
     if (!user) return;
     try {
-      const response = await axios.post('http://127.0.0.1:8000/get_chat_history', {
+      const response = await axios.post('http://127.0.0.1:8010/get_chat_history', {
         user_id: user.id
       });
       setThreads(response.data.threads);
@@ -28,7 +28,7 @@ function ChatHistorySidebar({ isOpen, onClose, onThreadSelect, currentThreadId, 
 
   const handleThreadSelect = async (thread) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/get_thread_messages', {
+      const response = await axios.post('http://127.0.0.1:8010/get_thread_messages', {
         thread_id: thread.thread_id
       });
 
@@ -49,7 +49,7 @@ function ChatHistorySidebar({ isOpen, onClose, onThreadSelect, currentThreadId, 
   const handleDeleteThread = async (threadId, e) => {
     e.stopPropagation();
     try {
-      await axios.delete(`http://127.0.0.1:8000/delete_thread/${threadId}`);
+      await axios.delete(`http://127.0.0.1:8010/delete_thread/${threadId}`);
       setThreads(threads.filter(t => t.thread_id !== threadId));
     } catch (error) {
       console.error('Error deleting thread:', error);

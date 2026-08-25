@@ -12,7 +12,7 @@ def get_llm():
     if not groq_api_key:
         raise ValueError("GROQ_API_KEY environment variable not set.")
     return ChatGroq(
-        model="llama-3.1-8b-instant", temperature=0.2, groq_api_key=groq_api_key
+        model="llama-3.1-8b-instant", temperature=0.2, groq_api_key=groq_api_key, max_retries=5
     )
 
 
@@ -44,34 +44,64 @@ def summarize_long_text(text: str, label: str, query: str) -> str:
     return safe_invoke(llm, prompt, {"query": query, "text": trimmed, "label": label})
 
 
-def generate_legacy_lawyer_answer(query: str, all_steps: str) -> str:
-    """Generates a structured legal analysis report for a lawyer (legacy logic)."""
+def _format_history(chat_history, max_turns: int = 6) -> str:
+    """Render recent conversation turns as plain text for prompting."""
+    if not chat_history:
+        return ""
+    recent = chat_history[-(max_turns * 2):]
+    lines = []
+    for m in recent:
+        if isinstance(m, dict):
+            role = m.get("role") or m.get("type") or "user"
+            content = m.get("content", "")
+        else:
+            role = getattr(m, "type", "user")
+            content = getattr(m, "content", str(m))
+        who = "Lawyer" if str(role).lower() in ("user", "human") else "L.A.R.A"
+        content = str(content).strip()
+        if content:
+            lines.append(f"{who}: {content[:500]}")
+    return "\n".join(lines)
+
+
+def generate_legacy_lawyer_answer(query: str, all_steps: str, chat_history=None) -> str:
+    """Generates a conversational, grounded legal briefing for a lawyer."""
     print("---GENERATING LEGACY LAWYER ANALYSIS REPORT---")
 
     # Compress steps if too long
     if len(all_steps.split()) > 1500:
         all_steps = summarize_long_text(all_steps, "research steps", query)
 
+    history_text = _format_history(chat_history)
+    history_block = history_text if history_text else "(This is the first message in the conversation.)"
+
     llm = get_llm()
     analysis_prompt = PromptTemplate(
-        template="""You are an expert legal assistant. Based on the lawyer's case details
-        and the research steps below, generate a professional legal analysis.
+        template="""You are L.A.R.A, an expert legal assistant helping a lawyer with Indian law, in an ongoing chat.
 
-        - **Original Case Details**: A summary of the query provided by the lawyer.
-        - **Relevant Statutes & Acts**: List of key legal provisions from Indian Law.
-        - **Past Case Precedents & Judgments**: A detailed summary of related case studies with names and citations.
-        - **Key Legal Arguments & Points**: Actionable points and arguments derived from the research.
-        - **Sources**: A clear list of all web pages and internal documents used.
+Conversation so far:
+{history}
 
-        Case Details: {query}
-        Research Steps: {all_steps}
+The lawyer's latest message: {query}
 
-        Final Legal Analysis:""",
-        input_variables=["query", "all_steps"],
+Research findings gathered for this message (your ONLY source of factual grounding):
+{all_steps}
+
+Write your reply following these rules:
+1. CONTINUITY: Continue naturally. Only greet or introduce yourself on the first message; otherwise do not greet.
+2. FOLLOW-UPS: If the latest message is a follow-up, interpret it using the earlier messages.
+3. GROUNDING: Cite statutes, sections, articles and case names ONLY if they appear in the research findings. Do not rely on your own memory for citations.
+4. NO HALLUCINATION: Never invent or guess a case name, citation, section or article. If the findings lack something, say so plainly rather than fabricating.
+5. STYLE: Clear professional prose, no rigid report headers. Offer actionable arguments where useful; as detailed as the case warrants without padding.
+
+Your conversational legal briefing:""",
+        input_variables=["history", "query", "all_steps"],
     )
 
     final_analysis = safe_invoke(
-        llm, analysis_prompt, {"query": query, "all_steps": all_steps}
+        llm,
+        analysis_prompt,
+        {"history": history_block, "query": query, "all_steps": all_steps},
     )
 
     return final_analysis
