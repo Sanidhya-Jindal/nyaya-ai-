@@ -41,9 +41,9 @@ function App() {
               </div>
               <div>
                 <h1 className="text-4xl font-black bg-gradient-to-r from-gray-900 via-gray-700 to-gray-800 bg-clip-text text-transparent drop-shadow-lg">
-                  L.A.R.A
+                  Nyaya AI
                 </h1>
-                <p className="text-gray-700 text-base font-semibold tracking-wide">Legal Analysis & Research Assistant</p>
+                <p className="text-gray-700 text-base font-semibold tracking-wide">Indian Legal Research Assistant</p>
                 <p className="text-gray-500 text-sm">Powered by Advanced AI Technology</p>
               </div>
             </div>

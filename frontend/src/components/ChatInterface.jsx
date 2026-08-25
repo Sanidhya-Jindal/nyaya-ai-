@@ -41,7 +41,7 @@ function ChatInterface() {
     setMessages([{
       id: crypto.randomUUID(),
       type: 'bot',
-      content: `Welcome ${user?.firstName || 'back'} to L.A.R.A! I am your AI Legal Assistant. How can I help you today? Please select your role and ask a question below.`,
+      content: `Welcome ${user?.firstName || 'back'} to Nyaya AI! I am your AI Legal Assistant. How can I help you today? Please select your role and ask a question below.`,
       timestamp: new Date()
     }]);
   }, [user]);
@@ -121,7 +121,7 @@ function ChatInterface() {
     setMessages([{
       id: crypto.randomUUID(),
       type: 'bot',
-      content: `Welcome ${user?.firstName || 'back'} to L.A.R.A! I am your AI Legal Assistant. How can I help you today? Please select your role and ask a question below.`,
+      content: `Welcome ${user?.firstName || 'back'} to Nyaya AI! I am your AI Legal Assistant. How can I help you today? Please select your role and ask a question below.`,
       timestamp: new Date()
     }]);
     setThreadId(newThreadId);
@@ -157,7 +157,7 @@ function ChatInterface() {
     const welcomeMessage = {
       id: crypto.randomUUID(),
       type: 'bot',
-      content: `Welcome ${user?.firstName || 'back'} to L.A.R.A! You switched to ${newRole === 'lawyer' ? 'Lawyer' : 'Citizen'} mode. How can I help you in this role?`,
+      content: `Welcome ${user?.firstName || 'back'} to Nyaya AI! You switched to ${newRole === 'lawyer' ? 'Lawyer' : 'Citizen'} mode. How can I help you in this role?`,
       timestamp: new Date()
     };
 
@@ -192,9 +192,9 @@ function ChatInterface() {
               </div>
               <div>
                 <h1 className="text-4xl font-black bg-gradient-to-r from-gray-900 via-gray-700 to-gray-800 bg-clip-text text-transparent drop-shadow-lg">
-                  L.A.R.A
+                  Nyaya AI
                 </h1>
-                <p className="text-gray-700 text-base font-semibold tracking-wide">Legal Analysis & Research Assistant</p>
+                <p className="text-gray-700 text-base font-semibold tracking-wide">Indian Legal Research Assistant</p>
                 <p className="text-gray-500 text-sm">Powered by Advanced AI Technology</p>
               </div>
             </div>
@@ -299,7 +299,7 @@ function ChatInterface() {
                       <span className={`font-bold text-base ${
                         message.type === 'user' ? 'text-gray-200' : 'text-gray-700'
                       }`}>
-                        {message.type === 'user' ? 'You' : 'L.A.R.A'}
+                        {message.type === 'user' ? 'You' : 'Nyaya AI'}
                       </span>
                       {message.type === 'bot' && !message.isError && <Award className="w-4 h-4 text-gray-600" />}
                       <span className={`text-xs ${
@@ -389,7 +389,7 @@ function ChatInterface() {
                 </div>
                 <div className="bg-white/90 rounded-3xl px-8 py-6 shadow-2xl border-2 border-gray-200 max-w-md backdrop-blur-md">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="font-bold text-base text-gray-700">L.A.R.A</span>
+                    <span className="font-bold text-base text-gray-700">Nyaya AI</span>
                     <Sparkles className="w-4 h-4 text-gray-600 animate-spin" />
                     <span className="text-xs text-gray-500">analyzing...</span>
                   </div>

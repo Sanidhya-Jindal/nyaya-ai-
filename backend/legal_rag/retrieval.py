@@ -1,4 +1,4 @@
-# LARA/legal_rag/retrieval.py
+# legal_rag/retrieval.py
 
 import os
 from pathlib import Path

@@ -350,8 +350,10 @@ Nyaya AI is a **research and educational tool**. It does not provide legal advic
 
 ---
 
-## Acknowledgements
+## Attribution
 
-This project builds on the original **L.A.R.A (Legal Analysis & Research Assistant)** open-source project and its contributors. The backend agent orchestration, retrieval pipeline, grounding safeguards, and evaluation layer have been substantially reworked in this version.
+Parts of this codebase originate from the open-source L.A.R.A (Legal Analysis & Research Assistant) project by its original authors. The agent orchestration, retrieval pipeline, grounding safeguards, evaluation layer, and interface in this repository have since been substantially reworked.
 
-Built with [LangGraph](https://langchain-ai.github.io/langgraph/), [FAISS](https://faiss.ai/), [Groq](https://groq.com/), [Tavily](https://tavily.com/), and [Sentence-Transformers](https://www.sbert.net/).
+## Built With
+
+[LangGraph](https://langchain-ai.github.io/langgraph/) · [FAISS](https://faiss.ai/) · [Groq](https://groq.com/) · [Tavily](https://tavily.com/) · [Sentence-Transformers](https://www.sbert.net/)

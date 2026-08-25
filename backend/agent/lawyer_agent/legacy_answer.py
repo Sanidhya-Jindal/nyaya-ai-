@@ -57,7 +57,7 @@ def _format_history(chat_history, max_turns: int = 6) -> str:
         else:
             role = getattr(m, "type", "user")
             content = getattr(m, "content", str(m))
-        who = "Lawyer" if str(role).lower() in ("user", "human") else "L.A.R.A"
+        who = "Lawyer" if str(role).lower() in ("user", "human") else "Nyaya AI"
         content = str(content).strip()
         if content:
             lines.append(f"{who}: {content[:500]}")
@@ -77,7 +77,7 @@ def generate_legacy_lawyer_answer(query: str, all_steps: str, chat_history=None)
 
     llm = get_llm()
     analysis_prompt = PromptTemplate(
-        template="""You are L.A.R.A, an expert legal assistant helping a lawyer with Indian law, in an ongoing chat.
+        template="""You are Nyaya AI, an expert legal assistant helping a lawyer with Indian law, in an ongoing chat.
 
 Conversation so far:
 {history}

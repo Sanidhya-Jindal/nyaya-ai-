@@ -17,9 +17,9 @@ const SignUpPage = () => {
           </div>
         </div>
         <h1 className="text-4xl font-black bg-gradient-to-r from-gray-900 via-gray-700 to-gray-800 bg-clip-text text-transparent drop-shadow-lg mb-2">
-          L.A.R.A
+          Nyaya AI
         </h1>
-        <p className="text-gray-600 text-lg font-medium">Legal Analysis & Research Assistant</p>
+        <p className="text-gray-600 text-lg font-medium">Indian Legal Research Assistant</p>
       </div>
 
       {/* Sign Up Container */}

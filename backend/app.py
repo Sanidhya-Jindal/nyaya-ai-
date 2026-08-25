@@ -18,8 +18,8 @@ from db import (
 # ============================
 
 app = FastAPI(
-    title="L.A.R.A. Backend API",
-    description="API for the Legal Analysis & Research Assistant",
+    title="Nyaya AI Backend API",
+    description="API for the Nyaya AI legal research assistant",
     version="1.0.0",
 )
 
@@ -142,7 +142,7 @@ def _extract_sources(result: dict) -> list[str] | None:
 
 @app.get("/")
 def read_root():
-    return {"message": "LARA backend is running."}
+    return {"message": "Nyaya AI backend is running."}
 
 
 @app.post("/process_query", response_model=QueryResponse)

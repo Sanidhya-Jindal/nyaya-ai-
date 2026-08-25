@@ -19,7 +19,7 @@ def _format_history(chat_history, max_turns=6):
     lines = []
     for m in recent:
         role = m.get("role") or m.get("type") or "user"
-        who = "User" if role in ("user", "human") else "L.A.R.A"
+        who = "User" if role in ("user", "human") else "Nyaya AI"
         content = (m.get("content") or "").strip()
         if content:
             lines.append(f"{who}: {content[:500]}")
@@ -50,7 +50,7 @@ def handle_non_legal_message(user_query: str, chat_history=None):
 
     prompt = PromptTemplate(
         template=(
-            "You are L.A.R.A, an AI assistant that ONLY covers INDIAN law.\n"
+            "You are Nyaya AI, an AI assistant that ONLY covers INDIAN law.\n"
             "Classify the user's LATEST message using the conversation for context, into one category:\n"
             "- 'greeting': a greeting, thanks, or small talk that is not a legal question.\n"
             "- 'out_of_scope': a legal question about the law of ANOTHER country/jurisdiction "

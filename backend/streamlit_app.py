@@ -10,7 +10,7 @@ load_dotenv()
 from agent.router import route_query
 
 st.set_page_config(
-    page_title="L.A.R.A. - Legal Analysis & Research Assistant",
+    page_title="Nyaya AI - Indian Legal Research Assistant",
     page_icon="⚖️",
 )
 
@@ -53,14 +53,14 @@ st.markdown(
 )
 
 st.markdown(
-    '<h1 class="main-header">⚖️ L.A.R.A. - Legal Analysis & Research Assistant</h1>',
+    '<h1 class="main-header">⚖️ Nyaya AI - Indian Legal Research Assistant</h1>',
     unsafe_allow_html=True,
 )
 
 # Display logo
 col1, col2, col3 = st.columns([1, 1, 1])
 st.markdown(
-    '<p class="welcome-text">Welcome to the <strong>Legal Analysis & Research Assistant</strong>. Ask your legal questions below and get AI-powered responses tailored to Indian law.</p>',
+    '<p class="welcome-text">Welcome to <strong>Nyaya AI</strong>. Ask your legal questions below and get AI-powered responses tailored to Indian law.</p>',
     unsafe_allow_html=True,
 )
 
@@ -87,14 +87,14 @@ with st.sidebar:
 
     st.header("ℹ️ About")
     st.markdown("""
-    L.A.R.A. uses advanced AI agents to provide accurate legal information based on Indian laws and case precedents.
+    Nyaya AI uses advanced AI agents to provide accurate legal information based on Indian laws and case precedents.
     """)
 
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-st.subheader("💬 Chat with L.A.R.A.")
+st.subheader("💬 Chat with Nyaya AI")
 
 # Chat container
 with st.container():

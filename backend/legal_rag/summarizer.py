@@ -190,7 +190,7 @@ def format_chat_history(chat_history, max_turns: int = 6) -> str:
         else:
             role = getattr(m, "type", "user")
             content = getattr(m, "content", str(m))
-        who = "User" if str(role).lower() in ("user", "human") else "L.A.R.A"
+        who = "User" if str(role).lower() in ("user", "human") else "Nyaya AI"
         content = str(content).strip()
         if content:
             lines.append(f"{who}: {content[:500]}")
@@ -232,7 +232,7 @@ def generate_final_analysis(state: AgentState) -> dict:
 
     llm = get_llm()
     analysis_prompt = PromptTemplate(
-        template="""You are L.A.R.A, a friendly and knowledgeable legal assistant for Indian law, having an ongoing chat with a user.
+        template="""You are Nyaya AI, a friendly and knowledgeable legal assistant for Indian law, having an ongoing chat with a user.
 
 Conversation so far:
 {history}
