@@ -1,5 +1,3 @@
-# CPU-only PyTorch: the default wheel is several GB and too big for free hosting
---extra-index-url https://download.pytorch.org/whl/cpu
 fastapi==0.117.1
 uvicorn==0.37.0
 pydantic==2.11.9
@@ -31,7 +29,11 @@ tavily-python==0.3.3
 requests==2.32.5
 
 # Torch (CPU-only)
-torch>=2.4.0
+# On Linux hosting (e.g. Streamlit Cloud) use the small CPU-only build; the default build is several GB
+torch @ https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp311-cp311-linux_x86_64.whl ; sys_platform == "linux" and python_version == "3.11"
+torch @ https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp312-cp312-linux_x86_64.whl ; sys_platform == "linux" and python_version == "3.12"
+torch @ https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp313-cp313-linux_x86_64.whl ; sys_platform == "linux" and python_version == "3.13"
+torch>=2.4.0 ; sys_platform != "linux" or python_version < "3.11" or python_version > "3.13"
 
 # Utilities
 orjson==3.11.3
