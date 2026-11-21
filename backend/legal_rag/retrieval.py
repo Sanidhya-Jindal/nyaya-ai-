@@ -41,7 +41,8 @@ def get_embedding_model():
 def get_faiss_db():
     global _faiss_db
     if _faiss_db is None:
-        FAISS_INDEX_PATH = "data/faiss_index"
+        # Resolve from this file so the app works whatever folder it is started from.
+        FAISS_INDEX_PATH = str(Path(__file__).resolve().parents[1] / "data" / "faiss_index")
         _faiss_db = FAISS.load_local(
             FAISS_INDEX_PATH,
             get_embedding_model(),

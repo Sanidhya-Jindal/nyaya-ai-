@@ -23,7 +23,8 @@ BLOCKED_WEB_DOMAINS = (
 def legal_database_search(query: str):
     """Search FAISS. Returns (content_string, list_of_source_dicts)."""
     try:
-        FAISS_INDEX_PATH = "data/faiss_index"
+        # Resolve from this file so the app works whatever folder it is started from.
+        FAISS_INDEX_PATH = str(Path(__file__).resolve().parents[3] / "data" / "faiss_index")
         embedding_model = HuggingFaceEmbeddings(
             model_name="sentence-transformers/all-MiniLM-L6-v2"
         )

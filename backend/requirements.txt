@@ -1,3 +1,5 @@
+# CPU-only PyTorch: the default wheel is several GB and too big for free hosting
+--extra-index-url https://download.pytorch.org/whl/cpu
 fastapi==0.117.1
 uvicorn==0.37.0
 pydantic==2.11.9
